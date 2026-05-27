@@ -1,170 +1,224 @@
-// Atributos de Jogo
-let producao = 0;
+// ==========================================
+// ESTADO DO JOGO (VARIÁVEIS GLOBAIS)
+// ==========================================
+let colheitaKgs = 0;
 let sustentabilidade = 50;
-let estagioPlanta = 0; // 0: Vazio, 1: Semente, 2: Crescendo, 3: Pronto
-let sensoresLigados = false;
-let painelSolarLigado = false;
-let jogoAtivo = true;
-let tempoCrescimento = null;
+let cicloEstagio = 0; // 0: Vazio, 1: Semente, 2: Crescendo, 3: Pronto
+let iotAtivo = false;
+let solarAtivo = false;
+let jogoRodando = true;
+let timerCrescimento = null;
 
-// Elementos da Interface
-const txtProd = document.getElementById("txt-prod");
-const txtSust = document.getElementById("txt-sust");
-const barProd = document.getElementById("bar-prod");
-const barSust = document.getElementById("bar-sust");
+// ==========================================
+// CAPTURA DOS ELEMENTOS DO HTML (DOM)
+// ==========================================
+const txtProducao = document.getElementById("txt-producao");
+const txtSustentabilidade = document.getElementById("txt-sustentabilidade");
+const barProducao = document.getElementById("bar-producao");
+const barSustentabilidade = document.getElementById("bar-sustentabilidade");
 
-const charAvatar = document.getElementById("char-avatar");
-const charText = document.getElementById("char-text");
-const estufaEstrutura = document.getElementById("estufa-estrutura");
-const solarRoof = document.getElementById("solar-roof");
-const climaEfeito = document.getElementById("efeito-clima");
+const botAvatar = document.getElementById("bot-avatar");
+const botTexto = document.getElementById("bot-texto");
+const estufaGrafica = document.getElementById("estufa-grafica");
+const placaSolarVisual = document.getElementById("placa-solar-visual");
+const terminalLog = document.getElementById("terminal-log");
 
 const btnPlantar = document.getElementById("btn-plantar");
 const btnColher = document.getElementById("btn-colher");
+const btnSensor = document.getElementById("btn-sensor");
+const btnSolar = document.getElementById("btn-solar");
+const btnReiniciar = document.getElementById("btn-reiniciar");
 
-// ID das plantas do cenário
-const plantasIds = ["p1", "p2", "p3", "p4"];
+// Lista com os IDs dos vasos para manipulação em lote
+const vasos = ["v1", "v2", "v3", "v4"];
 
-function jogar(acao) {
-    if (!jogoAtivo) return;
+// ==========================================
+// SISTEMA DE ESCUTA DE CLIQUES (MODERNO)
+// ==========================================
+btnPlantar.addEventListener("click", acaoPlantar);
+btnColher.addEventListener("click", acaoColher);
+btnSensor.addEventListener("click", ativarIot);
+btnSolar.addEventListener("click", ativarSolar);
+btnReiniciar.addEventListener("click", reiniciarJogo);
 
-    if (acao === 'plantar' && estagioPlanta === 0) {
-        estagioPlanta = 1;
-        btnPlantar.disabled = true;
-        
-        // Aplica regras de sustentabilidade baseadas nos upgrades ativos
-        if (sensoresLigados) {
-            sustentabilidade += 10;
-            atualizarPersonagem("🤖✨", "Sensores ativos! Irrigação sob medida liberada. Economia total de água!");
-            ativarEfeitoClima(true);
-        } else {
-            sustentabilidade -= 15;
-            atualizarPersonagem("👨‍🌾💦", "Plantamos! Mas gastamos muita água manual... nossa sustentabilidade caiu.");
-        }
-        
-        atualizarVisualPlantas("🌱");
-        iniciarCicloCrescimento();
-    }
+// ==========================================
+// FUNÇÕES DE MANEJO DA ESTUFA
+// ==========================================
 
-    else if (acao === 'colher' && estagioPlanta === 3) {
-        producao += 25;
-        estagioPlanta = 0;
-        btnPlantar.disabled = false;
-        btnColher.disabled = true;
-        
-        atualizarVisualPlantas("🟫");
-        atualizarPersonagem("🤖🎉", "Que colheita linda! Verduras frescas prontas para distribuição!");
-        
-        verificarFinais();
-    }
+function acaoPlantar() {
+    if (!jogoRodando || cicloEstagio !== 0) return;
 
-    else if (acao === 'sensor') {
-        sensoresLigados = true;
+    cicloEstagio = 1;
+    btnPlantar.disabled = true;
+    logarTerminal("Comando recebido: Plantio iniciado.");
+
+    if (iotAtivo) {
         sustentabilidade += 10;
-        document.getElementById("btn-sensor").disabled = true;
-        atualizarPersonagem("🤖📡", "Módulos IoT online! Monitoramento de solo ativado.");
+        atualizarBot("🤖✨", "Sensores detectaram as sementes! Irrigação por gotejamento ativada com precisão.");
+    } else {
+        sustentabilidade -= 15;
+        atualizarBot("👨‍🌾⚠️", "Plantamos, mas o gasto de água manual sem sensores reduziu a eficiência ecológica.");
     }
 
-    else if (acao === 'solar') {
-        painelSolarLigado = true;
-        sustentabilidade += 15;
-        solarRoof.classList.remove("hidden");
-        document.getElementById("btn-solar").disabled = true;
-        atualizarPersonagem("🤖☀️", "Energia fotovoltaica integrada! Agora somos 100% limpos.");
-    }
-
-    // Limites de segurança das métricas
-    sustentabilidade = Math.max(0, Math.min(100, sustentabilidade));
-    atualizarTelasERecursos();
+    atualizarVasosCenário("🌱");
+    atualizarDadosInterface();
+    
+    // Inicia o crescimento cronometrado
+    dispararTemporizador();
 }
 
-// Controla o tempo de crescimento real na estufa
-function iniciarCicloCrescimento() {
-    let contador = 0;
-    tempoCrescimento = setInterval(() => {
-        contador++;
-        if (contador === 1) {
-            estagioPlanta = 2;
-            atualizarVisualPlantas("🌿");
-            ativarEfeitoClima(false); // desliga a animação da água
-        } else if (contador === 2) {
-            estagioPlanta = 3;
-            atualizarVisualPlantas("🥬");
+function dispararTemporizador() {
+    let passos = 0;
+    timerCrescimento = setInterval(() => {
+        passos++;
+        if (passos === 1) {
+            cicloEstagio = 2;
+            atualizarVasosCenário("🌿");
+            logarTerminal("Sensores: Plantas entrando em fase vegetativa.");
+        } else if (passos === 2) {
+            cicloEstagio = 3;
+            atualizarVasosCenário("🥬");
             btnColher.disabled = false;
-            atualizarPersonagem("🤖📢", "Atenção: As alfaces cresceram! Pronto para colheita.");
-            clearInterval(tempoCrescimento);
+            atualizarBot("🤖📢", "As alfaces atingiram maturação ideal! Pronto para colheita.");
+            logarTerminal("Notificação: Cultivo pronto para comercialização.");
+            clearInterval(timerCrescimento);
         }
-    }, 3000); // Avança a cada 3 segundos
+    }, 2500); // Avança os estágios a cada 2.5 segundos
 }
 
-// Altera as plantas nos vasos do cenário
-function atualizarVisualPlantas(emoji) {
-    plantasIds.forEach(id => {
+function acaoColher() {
+    if (cicloEstagio !== 3) return;
+
+    colheitaKgs += 25;
+    cicloEstagio = 0;
+    btnPlantar.disabled = false;
+    btnColher.disabled = true;
+
+    atualizarVasosCenário("🟫");
+    logarTerminal(`Sucesso: +25kg colhidos. Total: ${colheitaKgs}kg.`);
+    atualizarBot("🤖🎉", "Ótimo trabalho! Alfaces colhidas sem agrotóxicos e prontas para o consumo.");
+
+    // Se a energia solar estiver ativa, gera bônus na colheita
+    if (solarAtivo) {
+        sustentabilidade += 5;
+        logarTerminal("Bônus Solar: Processamento pós-colheita utilizou 100% de energia limpa.");
+    }
+
+    atualizarDadosInterface();
+    testarCondicoesDeFim();
+}
+
+// ==========================================
+// UPGRADES TECNOLÓGICOS (EQUILÍBRIO AMBIENTAL)
+// ==========================================
+
+function ativarIot() {
+    iotAtivo = true;
+    btnSensor.disabled = true;
+    sustentabilidade += 10;
+    logarTerminal("Sistema: Sensores de umidade do solo instalados com sucesso.");
+    atualizarBot("🤖📡", "Agora controlamos a umidade via IoT. Chega de desperdiçar água!");
+    atualizarDadosInterface();
+}
+
+function ativarSolar() {
+    solarAtivo = true;
+    btnSolar.disabled = true;
+    sustentabilidade += 15;
+    placaSolarVisual.classList.remove("escondido");
+    logarTerminal("Infraestrutura: Painéis solares fotovoltaicos conectados à rede.");
+    atualizarBot("🤖☀️", "Estufa operando com energia limpa! Emissão de carbono zerada.");
+    atualizarDadosInterface();
+}
+
+// ==========================================
+// FUNÇÕES AUXILIARES DA INTERFACE
+// ==========================================
+
+function atualizarDadosInterface() {
+    sustentabilidade = Math.max(0, Math.min(100, sustentabilidade));
+    
+    txtProducao.innerText = colheitaKgs;
+    txtSustentabilidade.innerText = sustentabilidade;
+    
+    barProducao.style.width = Math.min(100, colheitaKgs) + "%";
+    barSustentabilidade.style.width = sustentabilidade + "%";
+
+    // Altera as cores da estufa com base na sustentabilidade
+    if (sustentabilidade <= 30) {
+        estufaGrafica.className = "estufa estufa-alerta";
+    } else if (sustentabilidade >= 70) {
+        estufaGrafica.className = "estufa estufa-sustentavel";
+    } else {
+        estufaGrafica.className = "estufa estufa-agua";
+    }
+}
+
+function atualizarVasosCenário(emoji) {
+    vasos.forEach(id => {
         document.getElementById(id).innerText = emoji;
-        // Pequena animação de pulo ao mudar de estágio
-        document.getElementById(id).style.transform = "scale(1.2)";
-        setTimeout(() => document.getElementById(id).style.transform = "scale(1)", 200);
     });
 }
 
-// Altera o humor e texto do robô/personagem
-function atualizarPersonagem(avatar, texto) {
-    charAvatar.innerText = avatar;
-    charText.innerText = texto;
+function atualizarBot(avatar, texto) {
+    botAvatar.innerText = avatar;
+    botTexto.innerText = texto;
 }
 
-function ativarEfeitoClima(ativo) {
-    if (ativo) climaEfeito.classList.add("chuva-ativa");
-    else climaEfeito.classList.remove("chuva-ativa");
+function logarTerminal(mensagem) {
+    const data = new Date();
+    const hora = data.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    terminalLog.innerHTML += `<p>[${hora}] > ${mensagem}</p>`;
+    terminalLog.scrollTop = terminalLog.scrollHeight; // Auto-scroll para baixo
 }
 
-function atualizarTelasERecursos() {
-    txtProd.innerText = producao;
-    txtSust.innerText = sustentabilidade;
-    barProd.style.width = Math.min(100, producao) + "%";
-    barSust.style.width = sustentabilidade + "%";
+// ==========================================
+// REGRAS DE VITÓRIA E DERROTA
+// ==========================================
 
-    // MUDANÇA DE APARÊNCIA DA ESTUFA
-    estufaEstrutura.className = "greenhouse-frame"; // Limpa classes
-    if (sustentabilidade <= 30) {
-        estufaEstrutura.classList.add("estufa-poluida");
-        if(jogoAtivo) atualizarPersonagem("🤖⚠️", "Alerta! A estufa está ficando sem recursos sustentáveis!");
-    } else if (sustentabilidade >= 70) {
-        estufaEstrutura.classList.add("estufa-perfeita");
-    } else {
-        estufaEstrutura.classList.add("estufa-normal");
-    }
-}
-
-function verificarFinais() {
+function testarCondicoesDeFim() {
     if (sustentabilidade <= 0) {
-        jogoAtivo = false;
-        clearInterval(tempoCrescimento);
-        atualizarPersonagem("💀❌", "Fim de Jogo! O ecossistema desmoronou devido ao uso excessivo de recursos.");
-    } else if (producao >= 100 && sustentabilidade >= 70) {
-        jogoAtivo = false;
-        clearInterval(tempoCrescimento);
-        atualizarPersonagem("🏆👑", "Vitória Perfeita! Você atingiu a meta de produção em total harmonia com o Meio Ambiente!");
+        jogoRodando = false;
+        clearInterval(timerCrescimento);
+        atualizarBot("💀❌", "A estufa faliu! O esgotamento dos recursos hídricos destruiu o solo.");
+        logarTerminal("CRÍTICO: Simulação encerrada por colapso ambiental.");
+        bloquearPainel();
+    } else if (colheitaKgs >= 100 && sustentabilidade >= 70) {
+        jogoRodando = false;
+        clearInterval(timerCrescimento);
+        atualizarBot("🏆👑", "Vitória! Você alcançou o equilíbrio perfeito do Agrinho: Agro forte e sustentável!");
+        logarTerminal("SUCESSO: Meta atingida em harmonia com o meio ambiente.");
+        bloquearPainel();
     }
+}
+
+function bloquearPainel() {
+    btnPlantar.disabled = true;
+    btnColher.disabled = true;
+    btnSensor.disabled = true;
+    btnSolar.disabled = true;
 }
 
 function reiniciarJogo() {
-    clearInterval(tempoCrescimento);
-    producao = 0;
+    clearInterval(timerCrescimento);
+    colheitaKgs = 0;
     sustentabilidade = 50;
-    estagioPlanta = 0;
-    sensoresLigados = false;
-    painelSolarLigado = false;
-    jogoAtivo = true;
+    cicloEstagio = 0;
+    iotAtivo = false;
+    solarAtivo = false;
+    jogoRodando = true;
 
-    document.getElementById("btn-sensor").disabled = false;
-    document.getElementById("btn-solar").disabled = false;
     btnPlantar.disabled = false;
-    btnColher.disabled = false;
-    solarRoof.classList.add("hidden");
-    ativarEfeitoClima(false);
+    btnColher.disabled = true;
+    btnSensor.disabled = false;
+    btnSolar.disabled = false;
+    placaSolarVisual.classList.add("escondido");
     
-    atualizarVisualPlantas("🟫");
-    atualizarPersonagem("🤖", "Sistema reiniciado. Vamos tentar o equilíbrio perfeito?");
-    atualizarTelasERecursos();
+    terminalLog.innerHTML = "<p>> Sistema reiniciado. Aguardando novo ciclo...</p>";
+    atualizarVasosCenário("🟫");
+    atualizarBot("🤖", "Nova simulação carregada. Consegue vencer equilibrando o sistema desta vez?");
+    atualizarDadosInterface();
 }
+
+// Execução inicial de teste para garantir sincronia do JS
+logarTerminal("Núcleo operacional carregado e pronto.");
