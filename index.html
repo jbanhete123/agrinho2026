@@ -3,61 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agrinho 2026 - Estufa Inteligente</title>
+    <title>Agrinho 2026 - Estufa Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <h1>Estufa Inteligente Sustentável 🌿</h1>
-        <p>Controle os sensores, plante, colha e mantenha o equilíbrio agroambiental.</p>
+        <h1>EcoEstufa Pro: O Jogo do Equilíbrio 🚀</h1>
+        <p>Mantenha a estufa saudável e mude o rumo da produção sustentável!</p>
     </header>
 
-    <main class="container">
+    <main class="game-layout">
         
-        <section class="status-panel">
-            <div class="metric">
-                <label>📦 Produção Acumulada: <span id="val-producao">0</span> kg</label>
-                <div class="progress-bar">
-                    <div id="bar-producao" class="progress fill-prod" style="width: 0%;"></div>
+        <section class="control-panel">
+            <div class="hud">
+                <div class="stat">
+                    <span>📦 Produção: <b id="txt-prod">0</b> kg</span>
+                    <div class="bar"><div id="bar-prod" class="fill prod" style="width: 0%;"></div></div>
+                </div>
+                <div class="stat">
+                    <span>🌍 Sustentabilidade: <b id="txt-sust">50</b>%</span>
+                    <div class="bar"><div id="bar-sust" class="fill sust" style="width: 50%;"></div></div>
                 </div>
             </div>
 
-            <div class="metric">
-                <label>♻️ Sustentabilidade do Sistema: <span id="val-sustentabilidade">60</span>%</label>
-                <div class="progress-bar">
-                    <div id="bar-sustentabilidade" class="progress fill-sust" style="width: 60%;"></div>
+            <div class="character-box">
+                <div id="char-avatar" class="avatar">🤖</div>
+                <div class="dialogue">
+                    <strong id="char-name">BioBot 1.0:</strong>
+                    <p id="char-text">Olá! Sou o assistente da estufa. Vamos plantar para começar?</p>
                 </div>
             </div>
-        </section>
 
-        <section class="estufa-display">
-            <h2>Canteiro de Monitoramento</h2>
-            <div id="canteiro" class="estagio-vazio">
-                <span id="planta-icone" class="icone-grande">🟫</span>
-                <p id="planta-status">Canteiro Vazio. Pronto para o plantio!</p>
+            <div class="actions">
+                <button id="btn-plantar" onclick="jogar('plantar')">🌱 Plantar Alface</button>
+                <button id="btn-colher" onclick="jogar('colher')" disabled>🧺 Colher Alface</button>
+                <button id="btn-sensor" onclick="jogar('sensor')">📡 Ativar Sensores IoT</button>
+                <button id="btn-solar" onclick="jogar('solar')">☀️ Painel Fotovoltaico</button>
+                <button id="btn-reset" onclick="reiniciarJogo()">Reiniciar Simulação</button>
             </div>
         </section>
 
-        <section class="feedback-box">
-            <p id="mensagem">🤖 Sistema online. Aguardando comando de plantio...</p>
-        </section>
+        <section class="visual-panel">
+            <div id="estufa-estrutura" class="greenhouse-frame estufa-normal">
+                <div class="glass-roof"></div>
+                
+                <div id="solar-roof" class="solar-panel-visual hidden"></div>
+                
+                <div class="cultivo-area">
+                    <div class="vaso"><span id="p1" class="planta">🟫</span></div>
+                    <div class="vaso"><span id="p2" class="planta">🟫</span></div>
+                    <div class="vaso"><span id="p3" class="planta">🟫</span></div>
+                    <div class="vaso"><span id="p4" class="planta">🟫</span></div>
+                </div>
 
-        <section class="actions-panel">
-            <h2>Painel de Controle:</h2>
-            <div class="button-grid">
-                <button id="btn-plantar" onclick="plantar()">🌱 Plantar Verduras</button>
-                <button id="btn-colher" onclick="colher()" disabled>🧺 Colher Produção</button>
-                <button id="btn-irrigacao" onclick="toggleIrrigacao()">💧 Irrigação Automatizada: <span id="status-irrigacao">DESLIGADA</span></button>
-                <button id="btn-solar" onclick="ativarPainelSolar()">☀️ Ligar Painéis Solares</button>
+                <div id="efeito-clima" class="clima-efeito"></div>
             </div>
-            <button id="btn-reset" onclick="reiniciarEstufa()">Resetar Sistema</button>
         </section>
 
     </main>
 
     <footer>
-        <p>Projeto Automação Agrícola - Agrinho 2026</p>
+        <p>Agrinho 2026 • Programação Ensino Médio</p>
     </footer>
 
     <script src="script.js"></script>
