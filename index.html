@@ -3,53 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agrinho 2026 - Simulador Agro Sustentável</title>
+    <title>Agrinho 2026 - Estufa Inteligente</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <h1>Agro Forte, Futuro Sustentável</h1>
-        <p>Encontre o equilíbrio perfeito entre produção e meio ambiente!</p>
+        <h1>Estufa Inteligente Sustentável 🌿</h1>
+        <p>Controle os sensores, plante, colha e mantenha o equilíbrio agroambiental.</p>
     </header>
 
     <main class="container">
         
         <section class="status-panel">
             <div class="metric">
-                <label>📈 Produtividade: <span id="val-producao">50</span>%</label>
+                <label>📦 Produção Acumulada: <span id="val-producao">0</span> kg</label>
                 <div class="progress-bar">
-                    <div id="bar-producao" class="progress fill-prod" style="width: 50%;"></div>
+                    <div id="bar-producao" class="progress fill-prod" style="width: 0%;"></div>
                 </div>
             </div>
 
             <div class="metric">
-                <label>🌱 Preservação Ambiental: <span id="val-ambiente">50</span>%</label>
+                <label>♻️ Sustentabilidade do Sistema: <span id="val-sustentabilidade">60</span>%</label>
                 <div class="progress-bar">
-                    <div id="bar-ambiente" class="progress fill-amb" style="width: 50%;"></div>
+                    <div id="bar-sustentabilidade" class="progress fill-sust" style="width: 60%;"></div>
                 </div>
             </div>
         </section>
 
+        <section class="estufa-display">
+            <h2>Canteiro de Monitoramento</h2>
+            <div id="canteiro" class="estagio-vazio">
+                <span id="planta-icone" class="icone-grande">🟫</span>
+                <p id="planta-status">Canteiro Vazio. Pronto para o plantio!</p>
+            </div>
+        </section>
+
         <section class="feedback-box">
-            <p id="mensagem">Escolha uma ação para iniciar o manejo da sua fazenda.</p>
+            <p id="mensagem">🤖 Sistema online. Aguardando comando de plantio...</p>
         </section>
 
         <section class="actions-panel">
-            <h2>Ações de Manejo:</h2>
+            <h2>Painel de Controle:</h2>
             <div class="button-grid">
-                <button onclick="tomarDecisao('agrotoxico')">⚠️ Usar Defensivo Químico Comum</button>
-                <button onclick="tomarDecisao('biologico')">🐞 Usar Controle Biológico</button>
-                <button onclick="tomarDecisao('gotejamento')">💧 Instalar Irrigação por Gotejamento</button>
-                <button onclick="tomarDecisao('rotacao')">🔄 Fazer Rotação de Culturas</button>
+                <button id="btn-plantar" onclick="plantar()">🌱 Plantar Verduras</button>
+                <button id="btn-colher" onclick="colher()" disabled>🧺 Colher Produção</button>
+                <button id="btn-irrigacao" onclick="toggleIrrigacao()">💧 Irrigação Automatizada: <span id="status-irrigacao">DESLIGADA</span></button>
+                <button id="btn-solar" onclick="ativarPainelSolar()">☀️ Ligar Painéis Solares</button>
             </div>
-            <button id="btn-reset" onclick="reiniciarSimulador()">Reiniciar Fazenda</button>
+            <button id="btn-reset" onclick="reiniciarEstufa()">Resetar Sistema</button>
         </section>
 
     </main>
 
     <footer>
-        <p>Projeto Programação - Agrinho 2026</p>
+        <p>Projeto Automação Agrícola - Agrinho 2026</p>
     </footer>
 
     <script src="script.js"></script>
